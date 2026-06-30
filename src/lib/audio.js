@@ -77,3 +77,34 @@ export function playWrong() {
 }
 
 export function resumeAudio() { try { getCtx(); } catch {} }
+
+/**
+ * Woodblock-style metronome click.
+ * accent: true = downbeat (higher pitch), false = regular beat
+ */
+export function playClick(accent = false) {
+  try {
+    const ctx = getCtx();
+    const now = ctx.currentTime;
+    const freq = accent ? 1200 : 800;
+
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 0.04);
+    g.gain.setValueAtTime(accent ? 0.35 : 0.22, now);
+    g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.06);
+  } catch {}
+}
+
+/** Play a guitar pluck at a given MIDI note — alias with clearer name */
+export function playNote(midi, volume = 0.45) {
+  playMidi(midi, volume);
+}
+
+export function getAudioContext() { try { return getCtx(); } catch { return null; } }

@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>guitar-trainer-react</title>
+    <title>Guitar Trainer</title>
+    <!--
+      Bravura: open-source SMuFL music font by Steinberg (OFL 1.1).
+      Used for the treble clef glyph (U+1D11E).
+      Falls back gracefully to Times New Roman / serif on all platforms.
+    -->
+    <style>
+      @font-face {
+        font-family: 'Bravura';
+        src: url('https://unpkg.com/bravura-font@1.389.0/redist/bravura.woff2') format('woff2'),
+             url('https://unpkg.com/bravura-font@1.389.0/redist/bravura.woff')  format('woff');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

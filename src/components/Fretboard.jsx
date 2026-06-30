@@ -10,11 +10,13 @@ const HEIGHT = 166;
 
 // dot type → fill colour (CSS var strings)
 const DOT_COLORS = {
-  correct: 'var(--accent)',
-  wrong:   'var(--danger)',
-  hint:    'var(--warning)',
-  root:    'var(--accent)',
-  scale:   'var(--text-2)',
+  correct:   'var(--accent)',
+  wrong:     'var(--danger)',
+  hint:      'var(--warning)',
+  root:      'var(--accent)',
+  scale:     'var(--text-2)',
+  active:    'var(--scale-active, #f59e0b)',
+  chordtone: 'var(--chordtone, #4a90d9)',
 };
 
 /**

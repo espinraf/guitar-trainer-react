@@ -2,22 +2,31 @@
 
 import { useState } from 'react';
 import { useTheme } from './hooks/useTheme';
-import ReadingTab   from './components/ReadingTab';
-import ExplorerTab  from './components/ExplorerTab';
-import ScalesTab    from './components/ScalesTab';
-import StatsTab     from './components/StatsTab';
+import ReadingTab    from './components/ReadingTab';
+import ExplorerTab   from './components/ExplorerTab';
+import ScalesTab     from './components/ScalesTab';
+import CagedTab      from './components/CagedTab';
+import IntervalTab   from './components/IntervalTab';
+import ChallengeTab  from './components/ChallengeTab';
+import StatsTab      from './components/StatsTab';
 
 const TABS = [
+  { id: 'challenge', label: '⚡ Daily'      },
   { id: 'reading',   label: 'Note reading' },
   { id: 'fretboard', label: 'Fretboard'    },
   { id: 'scales',    label: 'Scales'       },
+  { id: 'caged',     label: 'CAGED'        },
+  { id: 'intervals', label: 'Intervals'    },
   { id: 'stats',     label: 'Statistics'   },
 ];
 
 const PANELS = {
+  challenge: <ChallengeTab />,
   reading:   <ReadingTab />,
   fretboard: <ExplorerTab />,
   scales:    <ScalesTab />,
+  caged:     <CagedTab />,
+  intervals: <IntervalTab />,
   stats:     <StatsTab />,
 };
 
