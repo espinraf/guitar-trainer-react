@@ -13,7 +13,7 @@ function pickFrom(pool, last) {
   return note;
 }
 
-export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true }: { position?: string; noteSet?: string; soundOn?: boolean } = {}): any {
+export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true }: { position?: 'open' | 'all'; noteSet?: 'natural' | 'sharps' | 'flats' | 'all'; soundOn?: boolean } = {}): any {
   const pool = buildNotePool(noteSet, position);
   const lastNoteRef = useRef(null);
 

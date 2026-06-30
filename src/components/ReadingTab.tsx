@@ -8,10 +8,10 @@ import MidiPanel       from './MidiPanel';
 import { resumeAudio } from '../lib/audio';
 
 export default function ReadingTab() {
-  const [position,     setPosition]     = useState<string>('open');
+  const [position,     setPosition]     = useState<'open' | 'all'>('open');
   const [showNames,    setShowNames]    = useState<boolean>(false);
   const [soundOn,      setSoundOn]      = useState<boolean>(true);
-  const [noteSet,      setNoteSet]      = useState<string>('natural');
+  const [noteSet,      setNoteSet]      = useState<'natural' | 'sharps' | 'flats' | 'all'>('natural');
   const [midiEnabled,  setMidiEnabled]  = useState<boolean>(false);
   const [octaveStrict, setOctaveStrict] = useState<boolean>(false);
 
@@ -75,7 +75,7 @@ export default function ReadingTab() {
         <div className="card fretboard-card">
           <div className="card-header">
             <span className="card-label">{midiEnabled && midi.status === 'ready' ? 'Play the note on your guitar' : 'Click the correct fret'}</span>
-            <select value={position} onChange={e => setPosition(e.target.value)} aria-label="Position"><option value="open">Open position</option><option value="all">All positions</option></select>
+            <select value={position} onChange={e => setPosition(e.target.value as 'open' | 'all')} aria-label="Position"><option value="open">Open position</option><option value="all">All positions</option></select>
           </div>
           <div ref={fretWrapRef} style={{ width: '100%' }}>
             <Fretboard width={Math.max(320, fretWidth)} onFretClick={midiEnabled && midi.status === 'ready' ? null : answer} dots={dots} showNoteNames={showNames} />

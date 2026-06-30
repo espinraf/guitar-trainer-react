@@ -26,6 +26,8 @@ function FlameIcon({ className }: { className?: string }) {
   );
 }
 
+type NoteSet = 'natural' | 'sharps' | 'flats' | 'all';
+
 type SidebarProps = {
   score: number;
   attempts: number;
@@ -37,8 +39,8 @@ type SidebarProps = {
   onShowNames: (v: boolean) => void;
   soundOn: boolean;
   onSoundOn: (v: boolean) => void;
-  noteSet: string;
-  onNoteSet: (s: string) => void;
+  noteSet: NoteSet;
+  onNoteSet: (s: NoteSet) => void;
 };
 
 export default function Sidebar({ score, attempts, correct, streak, answered, dailyGoal, showNames, onShowNames, soundOn, onSoundOn, noteSet, onNoteSet }: SidebarProps) {
@@ -64,7 +66,7 @@ export default function Sidebar({ score, attempts, correct, streak, answered, da
         <div className="stat-label">Options</div>
         <div className="option-row">
           <label htmlFor="noteSetSelect" className="option-label">Note set</label>
-          <select id="noteSetSelect" value={noteSet} onChange={e => onNoteSet(e.target.value)} style={{ fontSize: 11 }}>
+          <select id="noteSetSelect" value={noteSet} onChange={e => onNoteSet(e.target.value as NoteSet)} style={{ fontSize: 11 }}>
             {NOTE_SET_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>

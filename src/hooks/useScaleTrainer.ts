@@ -6,7 +6,7 @@ export function useScaleTrainer(): any {
   const [root,      setRoot]      = useState('C');
   const [scaleName, setScaleName] = useState('major');
   const [posIndex,  setPosIndex]  = useState(0);
-  const [direction, setDirection] = useState('asc');   // 'asc' | 'desc' | 'both'
+  const [direction, setDirection] = useState<'asc' | 'desc' | 'both'>('asc');   // 'asc' | 'desc' | 'both'
   const [stepIndex, setStepIndex] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [soundOn,   setSoundOn]   = useState(true);
