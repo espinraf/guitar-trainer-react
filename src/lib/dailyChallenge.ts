@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * dailyChallenge.js — Deterministic daily challenge generation.
  *

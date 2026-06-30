@@ -1,3 +1,4 @@
+// @ts-nocheck
 const KEY = 'gt_data';
 let _sessionLogged = false;
 

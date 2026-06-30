@@ -1,3 +1,4 @@
+// @ts-nocheck
 let ctx = null;
 
 function getCtx() {

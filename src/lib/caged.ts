@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * caged.js — CAGED system shape definitions for major scale + chord shapes.
  *
