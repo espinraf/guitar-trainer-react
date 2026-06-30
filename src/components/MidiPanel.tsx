@@ -1,78 +1,55 @@
-/**
- * MidiPanel.jsx — MIDI connection status, device list, live note display.
- * Sits inside ReadingTab above the action bar.
- */
-
-const STATUS_LABELS = {
-  idle:        { text: 'MIDI available — click Connect',  color: 'var(--text-3)'   },
-  pending:     { text: 'Checking MIDI support…',          color: 'var(--text-3)'   },
+const STATUS_LABELS: Record<string, { text: string; color: string }> = {
+  idle:        { text: 'MIDI available — click Connect',  color: 'var(--text-3)' },
+  pending:     { text: 'Checking MIDI support…',          color: 'var(--text-3)' },
   unsupported: { text: 'Web MIDI not supported in this browser (try Chrome)', color: 'var(--danger)' },
   denied:      { text: 'MIDI access denied — check browser permissions',      color: 'var(--danger)' },
   'no-device': { text: 'No MIDI device detected — plug in your interface',   color: 'var(--warning)'},
-  ready:       { text: 'Connected',                       color: 'var(--accent)'   },
+  ready:       { text: 'Connected',                       color: 'var(--accent)' },
 };
 
-export default function MidiPanel({
-  status,
-  enabled,
-  devices,
-  activeNote,
-  lastNote,
-  octaveStrict,
-  onOctaveStrict,
-  onEnable,
-}) {
+type MidiDevice = { id: string; name?: string };
+
+type MidiPanelProps = {
+  status: string;
+  enabled: boolean;
+  devices: MidiDevice[];
+  activeNote: any | null;
+  lastNote: any | null;
+  octaveStrict: boolean;
+  onOctaveStrict: (v: boolean) => void;
+  onEnable: () => void;
+};
+
+export default function MidiPanel({ status, enabled, devices, activeNote, lastNote, octaveStrict, onOctaveStrict, onEnable }: MidiPanelProps) {
   const info = STATUS_LABELS[status] || STATUS_LABELS.idle;
   const canConnect = status === 'idle' && !enabled;
-  const isReady    = status === 'ready';
+  const isReady = status === 'ready';
 
   return (
     <div className="card midi-panel">
       <div className="card-header">
         <span className="card-label">MIDI input</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          {/* Octave-strict toggle */}
           {isReady && (
             <label className="toggle-row" style={{ gap: 6, fontSize: 11 }}>
               <span>Strict octave</span>
-              <span
-                className={`toggle-knob ${octaveStrict ? 'on' : ''}`}
-                onClick={() => onOctaveStrict(!octaveStrict)}
-              />
+              <span className={`toggle-knob ${octaveStrict ? 'on' : ''}`} onClick={() => onOctaveStrict(!octaveStrict)} />
             </label>
           )}
-          {canConnect && (
-            <button className="btn btn-primary btn-sm" onClick={onEnable}>
-              Connect
-            </button>
-          )}
+          {canConnect && (<button className="btn btn-primary btn-sm" onClick={onEnable}>Connect</button>)}
         </div>
       </div>
 
       <div className="midi-body">
-        {/* Status row */}
         <div className="midi-status-row">
-          <span
-            className="midi-dot"
-            style={{ background: info.color }}
-            aria-hidden="true"
-          />
+          <span className="midi-dot" style={{ background: info.color }} aria-hidden="true" />
           <span style={{ fontSize: 12, color: info.color }}>{info.text}</span>
         </div>
 
-        {/* Device list */}
         {isReady && devices.length > 0 && (
-          <div className="midi-devices">
-            {devices.map(d => (
-              <div key={d.id} className="midi-device-chip">
-                <MidiIcon />
-                {d.name}
-              </div>
-            ))}
-          </div>
+          <div className="midi-devices">{devices.map(d => (<div key={d.id} className="midi-device-chip"><MidiIcon />{d.name}</div>))}</div>
         )}
 
-        {/* Live note monitor */}
         {isReady && (
           <div className="midi-monitor">
             <div className="midi-monitor-label">Last note received</div>

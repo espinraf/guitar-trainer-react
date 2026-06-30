@@ -1,5 +1,3 @@
-// IntervalTab.jsx — Interval ear training: listen-and-identify or find-on-fretboard
-
 import { useState, useRef, useEffect } from 'react';
 import { useIntervalTrainer, DEFAULT_INTERVAL_POOL } from '../hooks/useIntervalTrainer';
 import Fretboard from './Fretboard';
@@ -11,24 +9,22 @@ const MODE_OPTIONS = [
 ];
 
 export default function IntervalTab() {
-  const [mode, setMode] = useState('listen');
-  const [intervalPool, setIntervalPool] = useState(DEFAULT_INTERVAL_POOL);
+  const [mode, setMode] = useState<string>('listen');
+  const [intervalPool, setIntervalPool] = useState<any[]>(DEFAULT_INTERVAL_POOL);
 
   const trainer = useIntervalTrainer({ mode, intervalPool });
-  const { state, score, attempts, correct, streak, next, playQuestion, playRoot, answerListen, answerFind } = trainer;
-  const { interval, rootMidi, answered, lastResult, lastClickedDot } = state;
+  const { state, score, attempts, correct, streak, next, playQuestion, playRoot, answerListen, answerFind } = trainer as any;
+  const { interval, rootMidi, answered, lastResult, lastClickedDot } = state as any;
 
-  // Auto-play the question on mount / when it changes (listen mode only)
   useEffect(() => {
     if (mode === 'listen') {
       const t = setTimeout(playQuestion, 300);
       return () => clearTimeout(t);
     }
-  }, [state, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state, mode]);
 
-  // Fretboard width (find mode)
-  const fretWrapRef = useRef(null);
-  const [fretWidth, setFretWidth] = useState(620);
+  const fretWrapRef = useRef<HTMLDivElement | null>(null);
+  const [fretWidth, setFretWidth] = useState<number>(620);
   useEffect(() => {
     const el = fretWrapRef.current;
     if (!el) return;
@@ -40,11 +36,11 @@ export default function IntervalTab() {
   const acc = attempts === 0 ? '—' : Math.round((correct / attempts) * 100) + '%';
   const rootNoteName = CHROMATIC[rootMidi % 12];
 
-  const toggleIntervalInPool = (iv) => {
+  const toggleIntervalInPool = (iv: any) => {
     setIntervalPool(prev => {
       const has = prev.includes(iv);
-      if (has && prev.length === 1) return prev; // keep at least one
-      return has ? prev.filter(p => p !== iv) : [...prev, iv];
+      if (has && prev.length === 1) return prev;
+      return has ? prev.filter((p: any) => p !== iv) : [...prev, iv];
     });
   };
 
@@ -52,8 +48,6 @@ export default function IntervalTab() {
 
   return (
     <div className="interval-layout">
-
-      {/* ── Controls ── */}
       <div className="card interval-controls-card">
         <div className="card-header">
           <span className="card-label">Interval trainer</span>
@@ -65,7 +59,7 @@ export default function IntervalTab() {
         <div className="ctrl-group">
           <label className="ctrl-label">Practice intervals</label>
           <div className="interval-pill-row">
-            {INTERVALS.filter(iv => iv.semitones > 0).map(iv => (
+            {INTERVALS.filter(iv => iv.semitones > 0).map((iv: any) => (
               <button
                 key={iv.short}
                 className={`interval-pill ${intervalPool.includes(iv) ? 'active' : ''}`}
@@ -78,14 +72,11 @@ export default function IntervalTab() {
         </div>
       </div>
 
-      {/* ── Question card ── */}
       {mode === 'listen' ? (
         <div className="card interval-question-card">
           <div className="card-header">
             <span className="card-label">What interval do you hear?</span>
-            <button className="btn btn-ghost btn-sm" onClick={playQuestion}>
-              ▶ Replay
-            </button>
+            <button className="btn btn-ghost btn-sm" onClick={playQuestion}>▶ Replay</button>
           </div>
 
           <div className="interval-listen-stage">
@@ -99,14 +90,11 @@ export default function IntervalTab() {
             </div>
           </div>
 
-          {/* Answer grid */}
           <div className="interval-answer-grid">
-            {intervalPool.map(iv => (
+            {intervalPool.map((iv: any) => (
               <button
                 key={iv.short}
-                className={`interval-answer-btn ${
-                  answered && iv.semitones === interval.semitones ? 'reveal-correct' : ''
-                }`}
+                className={`interval-answer-btn ${answered && iv.semitones === interval.semitones ? 'reveal-correct' : ''}`}
                 disabled={answered}
                 onClick={() => answerListen(iv.semitones)}
               >
@@ -117,25 +105,16 @@ export default function IntervalTab() {
           </div>
 
           <div className="action-bar" style={{ marginTop: 4 }}>
-            <div className="feedback feedback--idle">
-              {answered ? 'Press Next to continue' : 'Choose the interval you hear'}
-            </div>
-            <button className="btn btn-primary" onClick={next} disabled={!answered}>
-              Next <kbd>↵</kbd>
-            </button>
+            <div className="feedback feedback--idle">{answered ? 'Press Next to continue' : 'Choose the interval you hear'}</div>
+            <button className="btn btn-primary" onClick={next} disabled={!answered}>Next <kbd>↵</kbd></button>
           </div>
         </div>
       ) : (
         <>
-          {/* Find-on-fretboard mode */}
           <div className="card interval-question-card">
             <div className="card-header">
-              <span className="card-label">
-                Find the {interval.name} above {rootNoteName}
-              </span>
-              <button className="btn btn-ghost btn-sm" onClick={playRoot}>
-                ▶ Play root
-              </button>
+              <span className="card-label">Find the {interval.name} above {rootNoteName}</span>
+              <button className="btn btn-ghost btn-sm" onClick={playRoot}>▶ Play root</button>
             </div>
             <div className="interval-find-prompt">
               <span className="interval-find-root">{rootNoteName}</span>
@@ -162,30 +141,16 @@ export default function IntervalTab() {
               {lastResult === 'correct' && '✓ Correct!'}
               {lastResult === 'wrong' && '✗ Not quite — try another fret'}
             </div>
-            <button className="btn btn-primary" onClick={next} disabled={!answered}>
-              Next <kbd>↵</kbd>
-            </button>
+            <button className="btn btn-primary" onClick={next} disabled={!answered}>Next <kbd>↵</kbd></button>
           </div>
         </>
       )}
 
-      {/* ── Stats sidebar (inline row, simpler than ReadingTab sidebar) ── */}
       <div className="interval-stats-row">
-        <div className="stat-card">
-          <div className="stat-label">Score</div>
-          <div className="stat-value">{score}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Accuracy</div>
-          <div className="stat-value">{acc}</div>
-          <div className="stat-sub">{attempts === 0 ? 'no answers yet' : `${correct} of ${attempts}`}</div>
-        </div>
-        <div className="stat-card streak-card">
-          <div className="stat-label">Streak</div>
-          <div className="stat-value">{streak}</div>
-        </div>
+        <div className="stat-card"><div className="stat-label">Score</div><div className="stat-value">{score}</div></div>
+        <div className="stat-card"><div className="stat-label">Accuracy</div><div className="stat-value">{acc}</div><div className="stat-sub">{attempts === 0 ? 'no answers yet' : `${correct} of ${attempts}`}</div></div>
+        <div className="stat-card streak-card"><div className="stat-label">Streak</div><div className="stat-value">{streak}</div></div>
       </div>
-
     </div>
   );
 }

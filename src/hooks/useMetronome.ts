@@ -1,17 +1,6 @@
 /**
- * useMetronome.js
- *
+ * useMetronome.ts
  * Precise metronome using Web Audio API lookahead scheduling.
- * Never uses setInterval for timing — that drifts badly at high BPM.
- * Uses a short setTimeout only to trigger the next scheduling window.
- *
- * Based on the technique from Chris Wilson's "A Tale of Two Clocks":
- * https://web.dev/audio-scheduling/
- *
- * Usage:
- *   const { isPlaying, bpm, beat, start, stop, setBpm } = useMetronome({
- *     onBeat: (beatNumber, isDownbeat) => { ... }
- *   });
  */
 
 import { useState, useRef, useCallback, useEffect } from 'react';
@@ -20,7 +9,7 @@ import { getAudioContext, playClick } from '../lib/audio';
 const LOOKAHEAD_MS   = 25.0;   // how often to call scheduler (ms)
 const SCHEDULE_AHEAD = 0.1;    // how far ahead to schedule audio (sec)
 
-export function useMetronome({ onBeat, beatsPerBar = 4 } = {}) {
+export function useMetronome({ onBeat, beatsPerBar = 4 }: { onBeat?: (beatNumber:number, isDownbeat:boolean)=>void; beatsPerBar?: number } = {}): { isPlaying: boolean; bpm: number; beat: number; start: () => void; stop: () => void; setBpm: (n: number) => void } {
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm,       setBpmState]  = useState(80);
   const [beat,      setBeat]      = useState(0);   // current beat (1-indexed display)
@@ -31,20 +20,17 @@ export function useMetronome({ onBeat, beatsPerBar = 4 } = {}) {
   const beatCount    = useRef(0);   // total beats fired since start
   const timerRef     = useRef(null);
 
-  // Keep refs in sync
   useEffect(() => { onBeatRef.current = onBeat; }, [onBeat]);
 
   const scheduler = useCallback(() => {
     const ctx = getAudioContext();
     if (!ctx) return;
 
-    // Schedule all beats that fall within the lookahead window
     while (nextBeatTime.current < ctx.currentTime + SCHEDULE_AHEAD) {
       const beatNum    = beatCount.current;
       const isDownbeat = beatNum % beatsPerBar === 0;
       const schedTime  = nextBeatTime.current;
 
-      // Schedule the click sound at the precise audio time
       const delay = Math.max(0, schedTime - ctx.currentTime);
       setTimeout(() => {
         playClick(isDownbeat);
@@ -52,12 +38,10 @@ export function useMetronome({ onBeat, beatsPerBar = 4 } = {}) {
         if (onBeatRef.current) onBeatRef.current(beatNum, isDownbeat);
       }, delay * 1000);
 
-      // Advance to next beat
       nextBeatTime.current += 60.0 / bpmRef.current;
       beatCount.current++;
     }
 
-    // Re-schedule this function
     timerRef.current = setTimeout(scheduler, LOOKAHEAD_MS);
   }, [beatsPerBar]);
 
@@ -84,7 +68,6 @@ export function useMetronome({ onBeat, beatsPerBar = 4 } = {}) {
     setBpmState(newBpm);
   }, []);
 
-  // Clean up on unmount
   useEffect(() => () => clearTimeout(timerRef.current), []);
 
   return { isPlaying, bpm, beat, start, stop, setBpm };

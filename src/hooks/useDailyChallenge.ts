@@ -1,9 +1,5 @@
 /**
- * useDailyChallenge.js — Runtime state for the daily challenge.
- *
- * Phases: 'intro' → 'running' → 'results'
- * Each day can only be completed once — if already completed, the hook
- * starts directly in 'results' mode showing the stored result.
+ * useDailyChallenge.ts — Runtime state for the daily challenge.
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -12,7 +8,7 @@ import { fretToNote } from '../lib/theory';
 import { playCorrect, playWrong, playNote, resumeAudio } from '../lib/audio';
 import { storage } from '../lib/storage';
 
-export function useDailyChallenge() {
+export function useDailyChallenge(): any {
   const dateStr = todayKey();
   const challenge = useMemo(() => generateDailyChallenge(dateStr), [dateStr]);
 
@@ -48,20 +44,17 @@ export function useDailyChallenge() {
     setAnswers(prev => [...prev, { taskId: currentTask.id, correct: isCorrect }]);
   }, [answered, currentTask]);
 
-  /** Answer a note-read task by fret click */
   const answerNoteRead = useCallback((str, fret) => {
     if (answered || currentTask.type !== 'note-read') return;
     const isCorrect = currentTask.correctPositions.some(([s, f]) => s === str && f === fret);
     recordAnswer(isCorrect, { str, fret, type: isCorrect ? 'correct' : 'wrong' });
   }, [answered, currentTask, recordAnswer]);
 
-  /** Answer an interval task by choosing semitones */
   const answerInterval = useCallback((semitones) => {
     if (answered || currentTask.type !== 'interval') return;
     recordAnswer(semitones === currentTask.interval.semitones);
   }, [answered, currentTask, recordAnswer]);
 
-  /** Answer a scale-degree yes/no task */
   const answerScaleDegree = useCallback((guessYes) => {
     if (answered || currentTask.type !== 'scale-degree') return;
     recordAnswer(guessYes === currentTask.inScale);
@@ -83,7 +76,6 @@ export function useDailyChallenge() {
 
   const nextTask = useCallback(() => {
     if (taskIndex + 1 >= totalTasks) {
-      // Finish — compute score and save (answers already includes the last one)
       const finalCorrect = answers.filter(a => a.correct).length;
       const result = {
         completed: true,

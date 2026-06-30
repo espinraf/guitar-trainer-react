@@ -18,6 +18,7 @@ If you are developing a production application, we recommend using TypeScript wi
 ```
 cd guitar-trainer-react
 npm install
+npm run type-check   # sanity check
 npm run dev          # → http://localhost:5173
 # or
 npm run build        # production build in dist/

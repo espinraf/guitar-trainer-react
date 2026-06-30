@@ -13,7 +13,7 @@ function pickFrom(pool, last) {
   return note;
 }
 
-export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true } = {}) {
+export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true }: { position?: string; noteSet?: string; soundOn?: boolean } = {}): any {
   const pool = buildNotePool(noteSet, position);
   const lastNoteRef = useRef(null);
 
@@ -112,12 +112,6 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
     setState(s => ({ ...s, dailyGoal: n }));
   }, []);
 
-  /**
-   * Answer via MIDI note number.
-   * octaveStrict: if true, require exact octave match.
-   *              if false, match on pitch class only (more forgiving for MIDI guitars).
-   * Returns the best-matching [str, fret] for the dot highlight, or null.
-   */
   const answerByMidi = useCallback((midiNumber, octaveStrict = false) => {
     setState(s => {
       if (s.answeredOk) return s;
@@ -132,7 +126,6 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
 
       const attempts = s.attempts + 1;
 
-      // Find best fret position to highlight (closest to open position)
       const bestPos = s.correctPositions[0] ?? null;
       const dot = bestPos
         ? { str: bestPos[0], fret: bestPos[1], type: isCorrect ? 'correct' : 'wrong' }

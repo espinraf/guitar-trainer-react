@@ -1,4 +1,4 @@
-// App.jsx — Shell: topbar, tab nav, panel routing
+// App.tsx — Shell: topbar, tab nav, panel routing
 
 import { useState } from 'react';
 import { useTheme } from './hooks/useTheme';
@@ -10,7 +10,9 @@ import IntervalTab   from './components/IntervalTab';
 import ChallengeTab  from './components/ChallengeTab';
 import StatsTab      from './components/StatsTab';
 
-const TABS = [
+type Tab = { id: string; label: string };
+
+const TABS: Tab[] = [
   { id: 'challenge', label: '⚡ Daily'      },
   { id: 'reading',   label: 'Note reading' },
   { id: 'fretboard', label: 'Fretboard'    },
@@ -20,7 +22,7 @@ const TABS = [
   { id: 'stats',     label: 'Statistics'   },
 ];
 
-const PANELS = {
+const PANELS: Record<string, any> = {
   challenge: <ChallengeTab />,
   reading:   <ReadingTab />,
   fretboard: <ExplorerTab />,
@@ -31,8 +33,8 @@ const PANELS = {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('reading');
-  const { theme, toggle } = useTheme();
+  const [activeTab, setActiveTab] = useState<string>('reading');
+  const { theme, toggle } = useTheme() as any;
 
   return (
     <div id="app">

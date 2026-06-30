@@ -1,5 +1,5 @@
 /**
- * useCagedExplorer.js — State for the CAGED visualizer tab.
+ * useCagedExplorer.ts — State for the CAGED visualizer tab.
  */
 
 import { useState, useMemo, useCallback } from 'react';
@@ -7,7 +7,7 @@ import { buildCagedShape, getOrderedShapes, CAGED_ORDER } from '../lib/caged';
 import { playNote, resumeAudio } from '../lib/audio';
 import { fretToNote } from '../lib/theory';
 
-export function useCagedExplorer() {
+export function useCagedExplorer(): { root: string; setRoot: (s: string) => void; activeShapes: Set<string>; toggleShape: (k: string) => void; showAll: () => void; showOnly: (k: string) => void; orderedShapes: any; dots: any[]; soundOn: boolean; setSoundOn: (b: boolean) => void; handleNoteClick: (str: string, fret: number) => void } {
   const [root, setRoot] = useState('C');
   const [activeShapes, setActiveShapes] = useState(new Set(['C']));  // which shapes are shown
   const [soundOn, setSoundOn] = useState(true);

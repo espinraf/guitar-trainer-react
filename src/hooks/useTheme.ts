@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function useTheme() {
+export function useTheme(): { theme: string; toggle: () => void } {
   const [theme, setTheme] = useState(
     () => localStorage.getItem('gt_theme') || 'light'
   );
