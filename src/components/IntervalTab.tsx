@@ -9,7 +9,7 @@ const MODE_OPTIONS = [
 ];
 
 export default function IntervalTab() {
-  const [mode, setMode] = useState<string>('listen');
+  const [mode, setMode] = useState<'listen' | 'find'>('listen');
   const [intervalPool, setIntervalPool] = useState<any[]>(DEFAULT_INTERVAL_POOL);
 
   const trainer = useIntervalTrainer({ mode, intervalPool });
@@ -51,7 +51,7 @@ export default function IntervalTab() {
       <div className="card interval-controls-card">
         <div className="card-header">
           <span className="card-label">Interval trainer</span>
-          <select value={mode} onChange={e => { setMode(e.target.value); next(); }}>
+          <select value={mode} onChange={e => { setMode(e.target.value as 'listen' | 'find'); next(); }}>
             {MODE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </div>
