@@ -1,4 +1,10 @@
-// @ts-nocheck
+export type ShapeKey = 'C' | 'A' | 'G' | 'E' | 'D';
+
+type Cell = { o: number; d: number };
+
+type ShapeDef = { anchorOpenNote: string; frets: Record<number, Cell[]> };
+
+const CHORD_TONE_DEGREES = new Set([1, 3, 5]); // moved up for shared usage
 /**
  * caged.js — CAGED system shape definitions for major scale + chord shapes.
  *
@@ -25,9 +31,9 @@
 
 import { CHROMATIC } from './theory';
 
-export const CAGED_ORDER = ['C', 'A', 'G', 'E', 'D'];
+export const CAGED_ORDER: ShapeKey[] = ['C', 'A', 'G', 'E', 'D'];
 
-const SHAPE_DEFS = {
+const SHAPE_DEFS: Record<ShapeKey, ShapeDef> = {
   C: {
     anchorOpenNote: 'A',
     frets: {
@@ -85,9 +91,7 @@ const SHAPE_DEFS = {
   },
 };
 
-const CHORD_TONE_DEGREES = new Set([1, 3, 5]);
-
-function computeReferenceFret(shapeKey, rootNote) {
+function computeReferenceFret(shapeKey: ShapeKey, rootNote: string): number {
   const shape = SHAPE_DEFS[shapeKey];
   const openIdx = CHROMATIC.indexOf(shape.anchorOpenNote);
   const rootIdx = CHROMATIC.indexOf(rootNote);
@@ -98,7 +102,7 @@ function computeReferenceFret(shapeKey, rootNote) {
  * Build absolute fretboard positions for a CAGED shape in a given root key.
  * Returns array of { str, fret, degree, isRoot, isChordTone }
  */
-export function buildCagedShape(shapeKey, rootNote, maxFret = 15) {
+export function buildCagedShape(shapeKey: ShapeKey, rootNote: string, maxFret = 15): Array<{ str: number; fret: number; degree: number; isRoot: boolean; isChordTone: boolean }> {
   const shape = SHAPE_DEFS[shapeKey];
   const refFret = computeReferenceFret(shapeKey, rootNote);
 
@@ -120,13 +124,13 @@ export function buildCagedShape(shapeKey, rootNote, maxFret = 15) {
   return positions;
 }
 
-export function getShapeMinFret(shapeKey, rootNote) {
+export function getShapeMinFret(shapeKey: ShapeKey, rootNote: string): number {
   const positions = buildCagedShape(shapeKey, rootNote, 24);
   if (positions.length === 0) return 0;
   return Math.min(...positions.map(p => p.fret));
 }
 
-export function getOrderedShapes(rootNote) {
+export function getOrderedShapes(rootNote: string): Array<{ key: ShapeKey; minFret: number }> {
   return CAGED_ORDER
     .map(key => ({ key, minFret: getShapeMinFret(key, rootNote) }))
     .sort((a, b) => a.minFret - b.minFret);

@@ -3,18 +3,18 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { buildCagedShape, getOrderedShapes, CAGED_ORDER } from '../lib/caged';
+import { buildCagedShape, getOrderedShapes, CAGED_ORDER, type ShapeKey } from '../lib/caged';
 import { playNote, resumeAudio } from '../lib/audio';
 import { fretToNote } from '../lib/theory';
 
-export function useCagedExplorer(): { root: string; setRoot: (s: string) => void; activeShapes: Set<string>; toggleShape: (k: string) => void; showAll: () => void; showOnly: (k: string) => void; orderedShapes: any; dots: any[]; soundOn: boolean; setSoundOn: (b: boolean) => void; handleNoteClick: (str: string, fret: number) => void } {
-  const [root, setRoot] = useState('C');
-  const [activeShapes, setActiveShapes] = useState(new Set(['C']));  // which shapes are shown
+export function useCagedExplorer(): { root: ShapeKey; setRoot: (s: ShapeKey) => void; activeShapes: Set<ShapeKey>; toggleShape: (k: ShapeKey) => void; showAll: () => void; showOnly: (k: ShapeKey) => void; orderedShapes: any; dots: any[]; soundOn: boolean; setSoundOn: (b: boolean) => void; handleNoteClick: (str: number, fret: number) => void } {
+  const [root, setRoot] = useState<ShapeKey>('C');
+  const [activeShapes, setActiveShapes] = useState<Set<ShapeKey>>(new Set(['C']));  // which shapes are shown
   const [soundOn, setSoundOn] = useState(true);
 
   const orderedShapes = useMemo(() => getOrderedShapes(root), [root]);
 
-  const toggleShape = useCallback((key) => {
+  const toggleShape = useCallback((key: ShapeKey) => {
     setActiveShapes(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
@@ -24,7 +24,7 @@ export function useCagedExplorer(): { root: string; setRoot: (s: string) => void
   }, []);
 
   const showAll = useCallback(() => setActiveShapes(new Set(CAGED_ORDER)), []);
-  const showOnly = useCallback((key) => setActiveShapes(new Set([key])), []);
+  const showOnly = useCallback((key: ShapeKey) => setActiveShapes(new Set([key])), []);
 
   // Build dots for all active shapes, merged.
   // If a fret position appears in multiple active shapes, prefer chord-tone/root status.
