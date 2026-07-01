@@ -1,11 +1,30 @@
 import { useState, useCallback, useRef } from 'react';
-import { buildNotePool, findFretPositions, noteToMidi, CHROMATIC } from '../lib/theory';
+import { buildNotePool, findFretPositions, noteToMidi, CHROMATIC, type TrebleNote } from '../lib/theory';
+
+type Dot = { str: number; fret: number; type: 'hint' | 'correct' | 'wrong' };
+type FeedbackKind = 'idle' | 'correct' | 'wrong';
+
+type QuizState = {
+  note: TrebleNote;
+  correctPositions: Array<[number, number]>;
+  score: number;
+  attempts: number;
+  correct: number;
+  streak: number;
+  answered: number;
+  dailyGoal: number;
+  answeredOk: boolean;
+  hintShown: boolean;
+  lastClickedDot: Dot | null;
+  feedback: { text: string; kind: FeedbackKind };
+};
+
 import { playCorrect, playWrong } from '../lib/audio';
 import { storage } from '../lib/storage';
 
 const DAILY_GOAL = parseInt(storage.get('dailyGoal') || 20);
 
-function pickFrom(pool, last) {
+function pickFrom(pool: TrebleNote[], last: TrebleNote | null): TrebleNote {
   if (pool.length === 1) return pool[0];
   let note;
   do { note = pool[Math.floor(Math.random() * pool.length)]; }
@@ -13,11 +32,19 @@ function pickFrom(pool, last) {
   return note;
 }
 
-export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true }: { position?: 'open' | 'all'; noteSet?: 'natural' | 'sharps' | 'flats' | 'all'; soundOn?: boolean } = {}): any {
+export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true }: { position?: 'open' | 'all'; noteSet?: 'natural' | 'sharps' | 'flats' | 'all'; soundOn?: boolean } = {}): {
+  state: QuizState;
+  answer: (str: number, fret: number) => void;
+  answerByMidi: (midiNumber: number, octaveStrict?: boolean) => void;
+  next: () => void;
+  skip: () => void;
+  hint: () => void;
+  setDailyGoal: (n: number) => void;
+} {
   const pool = buildNotePool(noteSet, position);
-  const lastNoteRef = useRef(null);
+  const lastNoteRef = useRef<TrebleNote | null>(null);
 
-  const [state, setState] = useState(() => {
+  const [state, setState] = useState<QuizState>(() => {
     const note = pickFrom(pool, null);
     return {
       note,
@@ -30,12 +57,12 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
       dailyGoal: DAILY_GOAL,
       answeredOk: false,
       hintShown: false,
-      lastClickedDot: null,   // { str, fret, type }
+      lastClickedDot: null,
       feedback: { text: 'Click the correct fret on the fretboard', kind: 'idle' },
-    };
+    } as QuizState;
   });
 
-  const next = useCallback(() => {
+  const next = useCallback((): void => {
     const note = pickFrom(pool, lastNoteRef.current);
     lastNoteRef.current = note;
     setState(s => ({
@@ -49,7 +76,7 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
     }));
   }, [pool]);
 
-  const skip = useCallback(() => {
+  const skip = useCallback((): void => {
     setState(s => {
       storage.logNote(s.note.label, false);
       return { ...s, streak: 0 };
@@ -57,7 +84,7 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
     next();
   }, [next]);
 
-  const hint = useCallback(() => {
+  const hint = useCallback((): void => {
     setState(s => {
       if (s.answeredOk || s.hintShown) return s;
       const [str, fret] = s.correctPositions[0] || [];
@@ -70,7 +97,7 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
     });
   }, []);
 
-  const answer = useCallback((str, fret) => {
+  const answer = useCallback((str: number, fret: number): void => {
     setState(s => {
       if (s.answeredOk) return s; // ignore clicks after correct
 
@@ -107,12 +134,12 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
     });
   }, [soundOn]);
 
-  const setDailyGoal = useCallback((n) => {
+  const setDailyGoal = useCallback((n: number): void => {
     storage.set('dailyGoal', n);
     setState(s => ({ ...s, dailyGoal: n }));
   }, []);
 
-  const answerByMidi = useCallback((midiNumber, octaveStrict = false) => {
+  const answerByMidi = useCallback((midiNumber: number, octaveStrict = false): void => {
     setState(s => {
       if (s.answeredOk) return s;
 
@@ -127,8 +154,8 @@ export function useQuiz({ position = 'open', noteSet = 'natural', soundOn = true
       const attempts = s.attempts + 1;
 
       const bestPos = s.correctPositions[0] ?? null;
-      const dot = bestPos
-        ? { str: bestPos[0], fret: bestPos[1], type: isCorrect ? 'correct' : 'wrong' }
+      const dot: Dot | null = bestPos
+        ? { str: bestPos[0], fret: bestPos[1], type: (isCorrect ? 'correct' : 'wrong') }
         : null;
 
       if (isCorrect) {
