@@ -1,36 +1,49 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { CHROMATIC } from '../lib/theory';
 
-function midiNumberToNote(midi) {
+type MidiNote = { midi: number; note: string; octave: number };
+type Device = { id: string; name?: string };
+
+type MidiStatus = 'pending' | 'idle' | 'ready' | 'no-device' | 'unsupported' | 'denied';
+
+function midiNumberToNote(midi: number): MidiNote {
   const note   = CHROMATIC[midi % 12];
   const octave = Math.floor(midi / 12) - 1;
   return { midi, note, octave };
 }
 
-export function useMidi(): { status: string; enabled: boolean; devices: Array<{id:string,name?:string}>; activeNote: { midi:number; note:string; octave:number } | null; lastNote: { midi:number; note:string; octave:number } | null; enable: () => Promise<void>; onNote: (cb: (note: any) => void) => void } {
-  const [status,     setStatus]     = useState('pending');   // start pending — check on mount
-  const [enabled,    setEnabled]    = useState(false);
-  const [devices,    setDevices]    = useState([]);
-  const [activeNote, setActiveNote] = useState(null);
-  const [lastNote,   setLastNote]   = useState(null);
+export function useMidi(): {
+  status: MidiStatus;
+  enabled: boolean;
+  devices: Device[];
+  activeNote: MidiNote | null;
+  lastNote: MidiNote | null;
+  enable: () => Promise<void>;
+  onNote: (cb: ((note: MidiNote | null) => void) | null) => void;
+} {
+  const [status,     setStatus]     = useState<MidiStatus>('pending');   // start pending — check on mount
+  const [enabled,    setEnabled]    = useState<boolean>(false);
+  const [devices,    setDevices]    = useState<Device[]>([]);
+  const [activeNote, setActiveNote] = useState<MidiNote | null>(null);
+  const [lastNote,   setLastNote]   = useState<MidiNote | null>(null);
 
-  const accessRef = useRef(null);
-  const onNoteRef = useRef(null);
+  const accessRef = useRef<MIDIAccess | null>(null);
+  const onNoteRef = useRef<((note: MidiNote | null) => void) | null>(null);
 
-  const onNote = useCallback((cb) => { onNoteRef.current = cb; }, []);
+  const onNote = useCallback((cb: ((note: MidiNote | null) => void) | null) => { onNoteRef.current = cb; }, []);
 
-  function syncDevices(access) {
-    const list = [];
-    access.inputs.forEach(input => list.push({ id: input.id, name: input.name }));
+  function syncDevices(access: MIDIAccess) {
+    const list: Device[] = [];
+    access.inputs.forEach((input: MIDIInput) => list.push({ id: input.id, name: input.name }));
     setDevices(list);
     setStatus(list.length > 0 ? 'ready' : 'no-device');
   }
 
-  function attachListeners(access) {
-    access.inputs.forEach(input => {
-      input.onmidimessage = (e) => {
-        const [status, midiNote, velocity] = e.data;
-        const cmd = status & 0xf0;
+  function attachListeners(access: MIDIAccess) {
+    access.inputs.forEach((input: MIDIInput) => {
+      input.onmidimessage = (e: MIDIMessageEvent) => {
+        const [statusByte, midiNote, velocity] = e.data;
+        const cmd = statusByte & 0xf0;
 
         if (cmd === 0x90 && velocity > 0) {
           const parsed = midiNumberToNote(midiNote);
@@ -47,12 +60,12 @@ export function useMidi(): { status: string; enabled: boolean; devices: Array<{i
   }
 
   const enable = useCallback(async () => {
-    if (!navigator.requestMIDIAccess) {
+    if (!(navigator as any).requestMIDIAccess) {
       setStatus('unsupported');
       return;
     }
     try {
-      const access = await navigator.requestMIDIAccess({ sysex: false });
+      const access = await (navigator as any).requestMIDIAccess({ sysex: false }) as MIDIAccess;
       accessRef.current = access;
       setEnabled(true);
       syncDevices(access);
@@ -68,7 +81,7 @@ export function useMidi(): { status: string; enabled: boolean; devices: Array<{i
   }, []);
 
   useEffect(() => {
-    if (!navigator.requestMIDIAccess) {
+    if (!(navigator as any).requestMIDIAccess) {
       setStatus('unsupported');
     } else {
       setStatus('idle');
@@ -76,7 +89,7 @@ export function useMidi(): { status: string; enabled: boolean; devices: Array<{i
 
     return () => {
       if (accessRef.current) {
-        accessRef.current.inputs.forEach(input => { input.onmidimessage = null; });
+        accessRef.current.inputs.forEach((input: MIDIInput) => { input.onmidimessage = null; });
       }
     };
   }, []);
