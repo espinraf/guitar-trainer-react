@@ -1,13 +1,15 @@
-// @ts-nocheck
-let ctx = null;
+let ctx: AudioContext | null = null;
 
-function getCtx() {
-  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+function getCtx(): AudioContext {
+  if (!ctx) {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    ctx = new Ctx();
+  }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
 }
 
-function pluck(freq, volume = 0.45, duration = 1.8) {
+function pluck(freq: number, volume = 0.45, duration = 1.8) {
   const ctx = getCtx();
   const now = ctx.currentTime;
 
@@ -47,8 +49,8 @@ function pluck(freq, volume = 0.45, duration = 1.8) {
   noise.stop(now + 0.02);
 }
 
-export function playMidi(midi) {
-  try { pluck(440 * Math.pow(2, (midi - 69) / 12)); } catch {}
+export function playMidi(midi: number, volume: number = 0.45): void {
+  try { pluck(440 * Math.pow(2, (midi - 69) / 12), volume); } catch {}
 }
 
 export function playCorrect() {
@@ -104,8 +106,8 @@ export function playClick(accent = false) {
 }
 
 /** Play a guitar pluck at a given MIDI note — alias with clearer name */
-export function playNote(midi, volume = 0.45) {
+export function playNote(midi: number, volume = 0.45): void {
   playMidi(midi, volume);
 }
 
-export function getAudioContext() { try { return getCtx(); } catch { return null; } }
+export function getAudioContext(): AudioContext | null { try { return getCtx(); } catch { return null; } }
