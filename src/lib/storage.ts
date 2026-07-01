@@ -1,4 +1,15 @@
-// @ts-nocheck
+type NoteLog = { attempts: number; correct: number };
+
+type DailyChallengeEntry = { completed: boolean; score?: number; [k: string]: any };
+
+type StorageData = {
+  [key: string]: any;
+  notes?: Record<string, NoteLog>;
+  sessions?: number;
+  dailyChallenges?: Record<string, DailyChallengeEntry>;
+  challengeStreak?: number;
+  bestChallengeStreak?: number;
+};
 const KEY = 'gt_data';
 let _sessionLogged = false;
 
