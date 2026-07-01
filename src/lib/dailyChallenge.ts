@@ -1,19 +1,26 @@
-// @ts-nocheck
+import { BEGINNER_NOTES, TREBLE_NOTES_NATURAL, findFretPositions, INTERVALS, CHROMATIC, buildScaleSet, fretToNote, OPEN_STRINGS } from './theory';
+import type { TrebleNote } from './theory';
+
 /**
- * dailyChallenge.js — Deterministic daily challenge generation.
- *
+ * dailyChallenge.ts — Deterministic daily challenge generation (typed).
  * The same calendar date always produces the same sequence of tasks,
  * using a seeded PRNG (mulberry32) seeded from the date string.
- * This means every player who opens the app on a given day gets the
- * identical challenge — important for "daily challenge" semantics.
  */
 
-import { BEGINNER_NOTES, TREBLE_NOTES_NATURAL, findFretPositions } from './theory';
-import { INTERVALS } from './theory';
-import { CHROMATIC, buildScaleSet, fretToNote, OPEN_STRINGS } from './theory';
+type RNG = () => number;
+
+type Interval = { semitones: number; name: string; short: string };
+
+type NoteReadTask = { id: string; type: 'note-read'; note: TrebleNote; correctPositions: Array<[number, number]> };
+type IntervalTask = { id: string; type: 'interval'; interval: Interval; rootMidi: number; targetMidi: number; choices: Interval[] };
+type ScaleDegreeTask = { id: string; type: 'scale-degree'; root: string; scaleName: string; str: number; fret: number; note: string; inScale: boolean };
+
+type DailyTask = NoteReadTask | IntervalTask | ScaleDegreeTask;
+
+type DailyChallengeResult = { dateStr: string; seed: number; tasks: DailyTask[] };
 
 // ── Seeded PRNG (mulberry32) ───────────────────────────────────────
-function mulberry32(seed) {
+function mulberry32(seed: number): RNG {
   let a = seed;
   return function () {
     a |= 0; a = (a + 0x6D2B79F5) | 0;
@@ -24,7 +31,7 @@ function mulberry32(seed) {
 }
 
 /** Convert a date string (YYYY-MM-DD) into a 32-bit integer seed */
-function seedFromDate(dateStr) {
+function seedFromDate(dateStr: string): number {
   let hash = 0;
   for (let i = 0; i < dateStr.length; i++) {
     hash = (hash << 5) - hash + dateStr.charCodeAt(i);
@@ -42,7 +49,7 @@ export function todayKey() {
   return `${y}-${m}-${day}`;
 }
 
-function pick(rng, arr) {
+function pick<T>(rng: RNG, arr: T[]): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
@@ -55,17 +62,17 @@ const SCALE_NAMES = ['major', 'minor', 'pentatonic', 'blues'];
  *   'interval'     — hear/see root + target, identify interval name
  *   'scale-degree' — given root + scale, identify if a note is in the scale
  */
-export function generateDailyChallenge(dateStr = todayKey()) {
+export function generateDailyChallenge(dateStr = todayKey()): DailyChallengeResult {
   const seed = seedFromDate(dateStr);
   const rng = mulberry32(seed);
 
-  const tasks = [];
+  const tasks: DailyTask[] = [];
   const TASK_COUNT = 10;
 
   for (let i = 0; i < TASK_COUNT; i++) {
     // Weighted task type distribution: 5 note-read, 3 interval, 2 scale-degree
     const roll = rng();
-    let type;
+    let type: DailyTask['type'];
     if (roll < 0.5) type = 'note-read';
     else if (roll < 0.8) type = 'interval';
     else type = 'scale-degree';
@@ -77,9 +84,9 @@ export function generateDailyChallenge(dateStr = todayKey()) {
         type,
         note,
         correctPositions: findFretPositions(note.note, note.octave),
-      });
+      } as NoteReadTask);
     } else if (type === 'interval') {
-      const intervalChoices = INTERVALS.filter(iv => iv.semitones > 0 && iv.semitones <= 12);
+      const intervalChoices = (INTERVALS as Interval[]).filter(iv => iv.semitones > 0 && iv.semitones <= 12);
       const interval = pick(rng, intervalChoices);
       const rootMidi = OPEN_STRINGS[0].midi + Math.floor(rng() * 24); // within 2 octaves of low E
       tasks.push({
@@ -90,11 +97,11 @@ export function generateDailyChallenge(dateStr = todayKey()) {
         targetMidi: rootMidi + interval.semitones,
         // Build 4 answer choices: correct + 3 distractors
         choices: buildIntervalChoices(rng, interval, intervalChoices),
-      });
+      } as IntervalTask);
     } else {
       // scale-degree: show a note, ask "is this note in the C major scale?" style
       const root = pick(rng, CHROMATIC);
-      const scaleName = pick(rng, SCALE_NAMES);
+      const scaleName = pick(rng, SCALE_NAMES) as string;
       const scaleSet = buildScaleSet(root, scaleName);
       const str = Math.floor(rng() * 6);
       const fret = Math.floor(rng() * 12);
@@ -106,15 +113,15 @@ export function generateDailyChallenge(dateStr = todayKey()) {
         root, scaleName,
         str, fret, note,
         inScale,
-      });
+      } as ScaleDegreeTask);
     }
   }
 
   return { dateStr, seed, tasks };
 }
 
-function buildIntervalChoices(rng, correct, pool) {
-  const choices = [correct];
+function buildIntervalChoices(rng: RNG, correct: Interval, pool: Interval[]): Interval[] {
+  const choices: Interval[] = [correct];
   const remaining = pool.filter(iv => iv !== correct);
   while (choices.length < 4 && remaining.length > 0) {
     const idx = Math.floor(rng() * remaining.length);
