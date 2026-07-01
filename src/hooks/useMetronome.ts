@@ -6,6 +6,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { getAudioContext, playClick } from '../lib/audio';
 
+type OnBeat = (beatNumber: number, isDownbeat: boolean) => void;
+
 const LOOKAHEAD_MS   = 25.0;   // how often to call scheduler (ms)
 const SCHEDULE_AHEAD = 0.1;    // how far ahead to schedule audio (sec)
 
@@ -14,11 +16,11 @@ export function useMetronome({ onBeat, beatsPerBar = 4 }: { onBeat?: (beatNumber
   const [bpm,       setBpmState]  = useState(80);
   const [beat,      setBeat]      = useState(0);   // current beat (1-indexed display)
 
-  const bpmRef       = useRef(80);
-  const onBeatRef    = useRef(onBeat);
-  const nextBeatTime = useRef(0);
-  const beatCount    = useRef(0);   // total beats fired since start
-  const timerRef     = useRef(null);
+  const bpmRef       = useRef<number>(80);
+  const onBeatRef    = useRef<OnBeat | undefined>(onBeat);
+  const nextBeatTime = useRef<number>(0);
+  const beatCount    = useRef<number>(0);   // total beats fired since start
+  const timerRef     = useRef<number | null>(null);
 
   useEffect(() => { onBeatRef.current = onBeat; }, [onBeat]);
 
@@ -57,18 +59,18 @@ export function useMetronome({ onBeat, beatsPerBar = 4 }: { onBeat?: (beatNumber
   }, [scheduler]);
 
   const stop = useCallback(() => {
-    clearTimeout(timerRef.current);
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
     setIsPlaying(false);
     setBeat(0);
     beatCount.current = 0;
   }, []);
 
-  const setBpm = useCallback((newBpm) => {
+  const setBpm = useCallback((newBpm: number): void => {
     bpmRef.current = newBpm;
     setBpmState(newBpm);
   }, []);
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => () => { if (timerRef.current !== null) clearTimeout(timerRef.current); }, []);
 
   return { isPlaying, bpm, beat, start, stop, setBpm };
 }
