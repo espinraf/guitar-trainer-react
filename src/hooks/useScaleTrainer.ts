@@ -2,21 +2,44 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { buildScaleSequence, SCALE_POSITIONS, CHROMATIC } from '../lib/theory';
 import { playNote } from '../lib/audio';
 
-export function useScaleTrainer(): any {
-  const [root,      setRoot]      = useState('C');
-  const [scaleName, setScaleName] = useState('major');
-  const [posIndex,  setPosIndex]  = useState(0);
-  const [direction, setDirection] = useState<'asc' | 'desc' | 'both'>('asc');   // 'asc' | 'desc' | 'both'
-  const [stepIndex, setStepIndex] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [soundOn,   setSoundOn]   = useState(true);
+type Direction = 'asc' | 'desc' | 'both';
+
+type SequenceNote = { str: number; fret: number; midi: number; note: string };
+
+type Dot = { str: number; fret: number; type: 'active' | 'root' | 'scale'; label: string };
+
+export function useScaleTrainer(): {
+  root: string; setRoot: (s: string) => void;
+  scaleName: string; setScaleName: (s: string) => void;
+  posIndex: number; setPosIndex: (n: number) => void;
+  direction: Direction; setDirection: (d: Direction) => void;
+  soundOn: boolean; setSoundOn: (b: boolean) => void;
+  position: { label: string; minFret: number; maxFret: number };
+  sequence: SequenceNote[];
+  stepIndex: number;
+  currentNote: SequenceNote | null;
+  dots: Dot[];
+  isRunning: boolean;
+  onBeat: () => void;
+  start: () => void;
+  stop: () => void;
+  stepForward: () => void;
+  stepBack: () => void;
+} {
+  const [root,      setRoot]      = useState<string>('C');
+  const [scaleName, setScaleName] = useState<string>('major');
+  const [posIndex,  setPosIndex]  = useState<number>(0);
+  const [direction, setDirection] = useState<Direction>('asc');
+  const [stepIndex, setStepIndex] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [soundOn,   setSoundOn]   = useState<boolean>(true);
 
   const soundOnRef = useRef(soundOn);
   useEffect(() => { soundOnRef.current = soundOn; }, [soundOn]);
 
   const position = SCALE_POSITIONS[posIndex];
 
-  const sequence = useMemo(
+  const sequence = useMemo<SequenceNote[]>(
     () => buildScaleSequence(root, scaleName, position, direction),
     [root, scaleName, position, direction]
   );
@@ -25,7 +48,7 @@ export function useScaleTrainer(): any {
 
   const currentNote = sequence[stepIndex] ?? null;
 
-  const onBeat = useCallback(() => {
+  const onBeat = useCallback((): void => {
     if (!isRunning) return;
 
     setStepIndex(prev => {
@@ -36,18 +59,18 @@ export function useScaleTrainer(): any {
     });
   }, [isRunning, sequence]);
 
-  const start = useCallback(() => {
+  const start = useCallback((): void => {
     setStepIndex(0);
     setIsRunning(true);
     if (sequence[0] && soundOnRef.current) playNote(sequence[0].midi);
   }, [sequence]);
 
-  const stop = useCallback(() => {
+  const stop = useCallback((): void => {
     setIsRunning(false);
     setStepIndex(0);
   }, []);
 
-  const stepForward = useCallback(() => {
+  const stepForward = useCallback((): void => {
     setStepIndex(prev => {
       const next = (prev + 1) % sequence.length;
       if (sequence[next] && soundOnRef.current) playNote(sequence[next].midi);
@@ -55,7 +78,7 @@ export function useScaleTrainer(): any {
     });
   }, [sequence]);
 
-  const stepBack = useCallback(() => {
+  const stepBack = useCallback((): void => {
     setStepIndex(prev => {
       const next = (prev - 1 + sequence.length) % sequence.length;
       if (sequence[next] && soundOnRef.current) playNote(sequence[next].midi);
@@ -65,7 +88,7 @@ export function useScaleTrainer(): any {
 
   const rootMidiClass = CHROMATIC.indexOf(root);
 
-  const dots = useMemo(() => sequence.map((n, i) => {
+  const dots = useMemo<Dot[]>(() => sequence.map((n, i) => {
     const isActive = i === stepIndex;
     const isRoot   = n.midi % 12 === rootMidiClass;
     return {
