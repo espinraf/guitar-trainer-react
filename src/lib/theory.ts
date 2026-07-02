@@ -30,7 +30,7 @@ export function noteToMidi(note: string, octave: number): number {
   return CHROMATIC.indexOf(note) + (octave + 1) * 12;
 }
 
-export function findFretPositions(note: string, octave: number, maxFret = 15): Array<[number, number]> {
+export function findFretPositions(note: string, octave: number, maxFret = 24): Array<[number, number]> {
   const targetMidi = noteToMidi(note, octave);
   const enh = ENHARMONIC[note];
   const targetMidi2 = enh ? noteToMidi(enh, octave) : null;
@@ -47,6 +47,13 @@ export function findFretPositions(note: string, octave: number, maxFret = 15): A
 export type TrebleNote = { note: string; octave: number; staffPos: number; label: string; accidental?: 'sharp' | 'flat' };
 
 export const TREBLE_NOTES_NATURAL: TrebleNote[] = [
+  { note:'C', octave:3, staffPos:-14, label:'C3' },
+  { note:'D', octave:3, staffPos:-13, label:'D3' },
+  { note:'E', octave:3, staffPos:-12, label:'E3' },
+  { note:'F', octave:3, staffPos:-11, label:'F3' },
+  { note:'G', octave:3, staffPos:-10, label:'G3' },
+  { note:'A', octave:3, staffPos: -9, label:'A3' },
+  { note:'B', octave:3, staffPos: -8, label:'B3' },
   { note:'C', octave:4, staffPos:-2, label:'C4' },
   { note:'D', octave:4, staffPos:-1, label:'D4' },
   { note:'E', octave:4, staffPos: 0, label:'E4' },
@@ -59,9 +66,23 @@ export const TREBLE_NOTES_NATURAL: TrebleNote[] = [
   { note:'E', octave:5, staffPos: 7, label:'E5' },
   { note:'F', octave:5, staffPos: 8, label:'F5' },
   { note:'G', octave:5, staffPos: 9, label:'G5' },
+  { note:'A', octave:5, staffPos:10, label:'A5' },
+  { note:'B', octave:5, staffPos:11, label:'B5' },
+  { note:'C', octave:6, staffPos:12, label:'C6' },
+  { note:'D', octave:6, staffPos:13, label:'D6' },
+  { note:'E', octave:6, staffPos:14, label:'E6' },
+  { note:'F', octave:6, staffPos:15, label:'F6' },
+  { note:'G', octave:6, staffPos:16, label:'G6' },
+  { note:'A', octave:6, staffPos:17, label:'A6' },
+  { note:'B', octave:6, staffPos:18, label:'B6' },
 ];
 
 export const TREBLE_NOTES_SHARP: TrebleNote[] = [
+  { note:'C#', octave:3, staffPos:-13, label:'C#3', accidental:'sharp' },
+  { note:'D#', octave:3, staffPos:-12, label:'D#3', accidental:'sharp' },
+  { note:'F#', octave:3, staffPos:-10, label:'F#3', accidental:'sharp' },
+  { note:'G#', octave:3, staffPos: -9, label:'G#3', accidental:'sharp' },
+  { note:'A#', octave:3, staffPos: -8, label:'A#3', accidental:'sharp' },
   { note:'C#', octave:4, staffPos:-2, label:'C#4', accidental:'sharp' },
   { note:'D#', octave:4, staffPos:-1, label:'D#4', accidental:'sharp' },
   { note:'F#', octave:4, staffPos: 1, label:'F#4', accidental:'sharp' },
@@ -71,9 +92,20 @@ export const TREBLE_NOTES_SHARP: TrebleNote[] = [
   { note:'D#', octave:5, staffPos: 6, label:'D#5', accidental:'sharp' },
   { note:'F#', octave:5, staffPos: 8, label:'F#5', accidental:'sharp' },
   { note:'G#', octave:5, staffPos: 9, label:'G#5', accidental:'sharp' },
+  { note:'A#', octave:5, staffPos:10, label:'A#5', accidental:'sharp' },
+  { note:'C#', octave:6, staffPos:12, label:'C#6', accidental:'sharp' },
+  { note:'D#', octave:6, staffPos:13, label:'D#6', accidental:'sharp' },
+  { note:'F#', octave:6, staffPos:15, label:'F#6', accidental:'sharp' },
+  { note:'G#', octave:6, staffPos:16, label:'G#6', accidental:'sharp' },
+  { note:'A#', octave:6, staffPos:17, label:'A#6', accidental:'sharp' },
 ];
 
 export const TREBLE_NOTES_FLAT: TrebleNote[] = [
+  { note:'Db', octave:3, staffPos:-12, label:'Db3', accidental:'flat' },
+  { note:'Eb', octave:3, staffPos:-11, label:'Eb3', accidental:'flat' },
+  { note:'Gb', octave:3, staffPos: -9, label:'Gb3', accidental:'flat' },
+  { note:'Ab', octave:3, staffPos: -8, label:'Ab3', accidental:'flat' },
+  { note:'Bb', octave:3, staffPos: -7, label:'Bb3', accidental:'flat' },
   { note:'Db', octave:4, staffPos:-1, label:'Db4', accidental:'flat' },
   { note:'Eb', octave:4, staffPos: 0, label:'Eb4', accidental:'flat' },
   { note:'Gb', octave:4, staffPos: 2, label:'Gb4', accidental:'flat' },
@@ -84,6 +116,11 @@ export const TREBLE_NOTES_FLAT: TrebleNote[] = [
   { note:'Gb', octave:5, staffPos: 9, label:'Gb5', accidental:'flat' },
   { note:'Ab', octave:5, staffPos:10, label:'Ab5', accidental:'flat' },
   { note:'Bb', octave:5, staffPos:11, label:'Bb5', accidental:'flat' },
+  { note:'Db', octave:6, staffPos:13, label:'Db6', accidental:'flat' },
+  { note:'Eb', octave:6, staffPos:14, label:'Eb6', accidental:'flat' },
+  { note:'Gb', octave:6, staffPos:16, label:'Gb6', accidental:'flat' },
+  { note:'Ab', octave:6, staffPos:17, label:'Ab6', accidental:'flat' },
+  { note:'Bb', octave:6, staffPos:18, label:'Bb6', accidental:'flat' },
 ];
 
 export const TREBLE_NOTES = TREBLE_NOTES_NATURAL;
@@ -173,7 +210,7 @@ export function getInterval(semitones: number) {
   return INTERVALS.find(iv => iv.semitones === norm) || INTERVALS[0];
 }
 
-export function findFretPositionsForMidi(midi: number, maxFret = 15): Array<[number, number]> {
+export function findFretPositionsForMidi(midi: number, maxFret = 24): Array<[number, number]> {
   const positions: Array<[number, number]> = [];
   for (let s = 0; s < 6; s++) {
     for (let f = 0; f <= maxFret; f++) {

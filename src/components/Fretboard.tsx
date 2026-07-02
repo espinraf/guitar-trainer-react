@@ -1,8 +1,8 @@
 import { fretToNote, STRING_LABELS } from '../lib/theory';
 
 const STRING_COUNT  = 6;
-const FRET_COUNT    = 15;
-const FRET_MARKERS  = [3, 5, 7, 9, 12];
+const FRET_COUNT    = 24;
+const FRET_MARKERS  = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
 const PAD_L = 38; const PAD_R = 16; const PAD_T = 26; const PAD_B = 28;
 const HEIGHT = 166;
 
