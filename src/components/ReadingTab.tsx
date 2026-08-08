@@ -5,6 +5,8 @@ import Staff           from './Staff';
 import Fretboard       from './Fretboard';
 import Sidebar         from './Sidebar';
 import MidiPanel       from './MidiPanel';
+import FretboardDiagram from './FretboardDiagram';
+import { findFretPositions } from '../lib/theory';
 import { resumeAudio } from '../lib/audio';
 
 export default function ReadingTab() {
@@ -14,6 +16,7 @@ export default function ReadingTab() {
   const [noteSet,      setNoteSet]      = useState<'natural' | 'sharps' | 'flats' | 'all'>('natural');
   const [midiEnabled,  setMidiEnabled]  = useState<boolean>(false);
   const [octaveStrict, setOctaveStrict] = useState<boolean>(false);
+  const [showTheory,   setShowTheory]   = useState<boolean>(true);
 
   const { state, answer, answerByMidi, next, skip, hint } = useQuiz({ position, noteSet, soundOn }) as any;
   const { note, answeredOk, feedback, lastClickedDot, score, attempts, correct, streak, answered, dailyGoal } = state as any;
@@ -61,15 +64,49 @@ export default function ReadingTab() {
   return (
     <div className="reading-layout">
       <div className="reading-left">
-        <div className="card staff-card">
-          <div className="card-header">
-            <span className="card-label">Find this note</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {midiEnabled && midi.status === 'ready' && (<span className="midi-live-badge"><span className="midi-live-dot" />MIDI</span>)}
-              <span className={`note-badge ${answeredOk ? 'visible' : ''}`}>{note?.label}</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+          {/* Staff card */}
+          <div className="card staff-card">
+            <div className="card-header">
+              <span className="card-label">Find this note</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {midiEnabled && midi.status === 'ready' && (<span className="midi-live-badge"><span className="midi-live-dot" />MIDI</span>)}
+                <span className={`note-badge ${answeredOk ? 'visible' : ''}`}>{note?.label}</span>
+              </div>
             </div>
+            <div className="staff-wrap"><Staff noteInfo={note} state={staffState} showName={showNames} /></div>
           </div>
-          <div className="staff-wrap"><Staff noteInfo={note} state={staffState} showName={showNames} /></div>
+
+          {/* Theory reference card */}
+          {showTheory && note && (
+            <div className="card" style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div className="card-header">
+                <span className="card-label">All positions for {note.label}</span>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  onClick={() => setShowTheory(false)}
+                  title="Close theory reference"
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-2)' }}>
+                <strong>Strings and frets where {note.label} can be played:</strong>
+                <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {findFretPositions(note.note, note.octave).slice(0, 6).map(([str, fret], idx) => (
+                    <span key={idx} style={{ 
+                      backgroundColor: 'var(--bg-2)', 
+                      padding: '4px 8px', 
+                      borderRadius: '4px',
+                      fontSize: '11px'
+                    }}>
+                      String {str + 1}, Fret {fret}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="card fretboard-card">
@@ -87,6 +124,15 @@ export default function ReadingTab() {
         <div className="action-bar">
           <div className={`feedback feedback--${feedback.kind}`} aria-live="polite" aria-atomic="true">{feedback.text}</div>
           <div className="action-btns">
+            {!showTheory && (
+              <button 
+                className="btn btn-ghost" 
+                onClick={() => setShowTheory(true)}
+                title="Show all positions for this note"
+              >
+                📖 Show Positions
+              </button>
+            )}
             <button className="btn btn-ghost" onClick={hint} disabled={answeredOk}>Hint <kbd>H</kbd></button>
             <button className="btn btn-ghost" onClick={skip}>Skip <kbd>S</kbd></button>
             <button className="btn btn-primary" onClick={next} disabled={!answeredOk}>Next <kbd>↵</kbd></button>
